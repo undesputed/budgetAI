@@ -1,0 +1,38 @@
+Welcome to BudgetAI!
+
+Thank you for signing up! We're excited to help you take control of your finances with AI-powered insights and smart budgeting tools.
+
+To complete your account setup and start managing your budget, please confirm your email address by clicking the link below:
+
+{{ .ConfirmationURL }}
+
+🔒 SECURITY NOTICE:
+This confirmation link will expire in 24 hours for your security. If you didn't create an account with BudgetAI, you can safely ignore this email.
+
+What you'll get with BudgetAI:
+✓ Smart budget creation and tracking
+✓ AI-powered financial insights
+✓ Expense categorization and analysis
+✓ Monthly and yearly financial reports
+✓ Goal setting and progress tracking
+✓ Secure, encrypted data storage
+
+Once confirmed, you'll be redirected to your personal dashboard where you can start creating your first budget and exploring all the features BudgetAI has to offer.
+
+If you have any questions or need assistance, don't hesitate to reach out to our support team.
+
+Best regards,
+The BudgetAI Team
+
+---
+BudgetAI - Personal Finance Manager
+Take control of your finances with AI-powered insights
+
+Support: {{ .SiteURL }}/support
+Privacy Policy: {{ .SiteURL }}/privacy
+Terms of Service: {{ .SiteURL }}/terms
+
+This email was sent to {{ .Email }} because you signed up for BudgetAI.
+If you didn't create an account, you can safely ignore this email.
+
+© 2024 BudgetAI. All rights reserved.

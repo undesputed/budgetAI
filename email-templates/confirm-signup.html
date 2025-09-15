@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirm Your BudgetAI Account</title>
+    <style>
+        /* Reset styles */
+        body, table, td, p, a, li, blockquote {
+            -webkit-text-size-adjust: 100%;
+            -ms-text-size-adjust: 100%;
+        }
+        table, td {
+            mso-table-lspace: 0pt;
+            mso-table-rspace: 0pt;
+        }
+        img {
+            -ms-interpolation-mode: bicubic;
+        }
+
+        /* Remove blue links for clients that don't support them */
+        a[x-apple-data-detectors] {
+            color: inherit !important;
+            text-decoration: none !important;
+            font-size: inherit !important;
+            font-family: inherit !important;
+            font-weight: inherit !important;
+            line-height: inherit !important;
+        }
+
+        /* Main styles */
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100% !important;
+            min-width: 100%;
+            height: 100%;
+            background-color: #f8fafc;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #003366;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #003366 0%, #00509e 50%, #007acc 100%);
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .logo {
+            color: #ffffff;
+            font-size: 28px;
+            font-weight: bold;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            width: 32px;
+            height: 32px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #007acc;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .greeting {
+            font-size: 24px;
+            font-weight: bold;
+            color: #003366;
+            margin-bottom: 20px;
+        }
+
+        .message {
+            font-size: 16px;
+            color: #00509e;
+            margin-bottom: 30px;
+            line-height: 1.7;
+        }
+
+        .cta-container {
+            text-align: center;
+            margin: 40px 0;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #003366 0%, #00509e 50%, #007acc 100%);
+            color: #ffffff !important;
+            text-decoration: none;
+            padding: 16px 32px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 16px;
+            box-shadow: 0 4px 12px rgba(0, 80, 158, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 80, 158, 0.4);
+        }
+
+        .security-note {
+            background-color: #cce0ff;
+            border-left: 4px solid #007acc;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .security-note h3 {
+            color: #003366;
+            margin: 0 0 10px 0;
+            font-size: 16px;
+        }
+
+        .security-note p {
+            color: #00509e;
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .features {
+            background-color: #f8fafc;
+            padding: 30px;
+            margin: 30px 0;
+            border-radius: 8px;
+        }
+
+        .features h3 {
+            color: #003366;
+            margin: 0 0 20px 0;
+            font-size: 18px;
+            text-align: center;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .feature-list li {
+            padding: 8px 0;
+            color: #00509e;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .feature-list li::before {
+            content: "✓";
+            color: #007acc;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .footer {
+            background-color: #f8fafc;
+            padding: 30px;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .footer p {
+            color: #00509e;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+
+        .footer a {
+            color: #007acc;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        .social-links {
+            margin: 20px 0;
+        }
+
+        .social-links a {
+            display: inline-block;
+            margin: 0 10px;
+            color: #007acc;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .troubleshooting {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 20px;
+            margin: 30px 0;
+            border-radius: 8px;
+        }
+
+        .troubleshooting h3 {
+            color: #856404;
+            margin: 0 0 10px 0;
+            font-size: 16px;
+        }
+
+        .troubleshooting p {
+            color: #856404;
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .troubleshooting a {
+            color: #007acc;
+            text-decoration: none;
+        }
+
+        /* Mobile responsive */
+        @media only screen and (max-width: 600px) {
+            .email-container {
+                width: 100% !important;
+            }
+            
+            .header, .content, .footer {
+                padding: 20px !important;
+            }
+            
+            .greeting {
+                font-size: 20px !important;
+            }
+            
+            .cta-button {
+                padding: 14px 24px !important;
+                font-size: 14px !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <a href="{{ .SiteURL }}" class="logo">
+                <div class="logo-icon">📊</div>
+                BudgetAI
+            </a>
+        </div>
+
+        <!-- Main Content -->
+        <div class="content">
+            <h1 class="greeting">Welcome to BudgetAI!</h1>
+            
+            <p class="message">
+                Thank you for signing up! We're excited to help you take control of your finances with AI-powered insights and smart budgeting tools.
+            </p>
+
+            <p class="message">
+                To complete your account setup and start managing your budget, please confirm your email address by clicking the button below:
+            </p>
+
+            <!-- Call to Action -->
+            <div class="cta-container">
+                <a href="{{ .ConfirmationURL }}" class="cta-button">
+                    Confirm My Account
+                </a>
+            </div>
+
+            <!-- Security Note -->
+            <div class="security-note">
+                <h3>🔒 Security Notice</h3>
+                <p>
+                    This confirmation link will expire in 24 hours for your security. If you didn't create an account with BudgetAI, 
+                    you can safely ignore this email.
+                </p>
+            </div>
+
+            <!-- Features Preview -->
+            <div class="features">
+                <h3>What you'll get with BudgetAI:</h3>
+                <ul class="feature-list">
+                    <li>Smart budget creation and tracking</li>
+                    <li>AI-powered financial insights</li>
+                    <li>Expense categorization and analysis</li>
+                    <li>Monthly and yearly financial reports</li>
+                    <li>Goal setting and progress tracking</li>
+                    <li>Secure, encrypted data storage</li>
+                </ul>
+            </div>
+
+            <!-- Troubleshooting -->
+            <div class="troubleshooting">
+                <h3>Having trouble with the button?</h3>
+                <p>
+                    If the confirmation button doesn't work, copy and paste this link into your browser:
+                    <br><a href="{{ .ConfirmationURL }}">{{ .ConfirmationURL }}</a>
+                </p>
+            </div>
+
+            <p class="message">
+                Once confirmed, you'll be redirected to your personal dashboard where you can start creating your first budget and exploring all the features BudgetAI has to offer.
+            </p>
+
+            <p class="message">
+                If you have any questions or need assistance, don't hesitate to reach out to our support team.
+            </p>
+
+            <p class="message">
+                Best regards,<br>
+                The BudgetAI Team
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>BudgetAI - Personal Finance Manager</strong></p>
+            <p>Take control of your finances with AI-powered insights</p>
+            
+            <div class="social-links">
+                <a href="{{ .SiteURL }}/support">Support</a>
+                <a href="{{ .SiteURL }}/privacy">Privacy Policy</a>
+                <a href="{{ .SiteURL }}/terms">Terms of Service</a>
+            </div>
+            
+            <p>
+                This email was sent to {{ .Email }} because you signed up for BudgetAI.<br>
+                If you didn't create an account, you can safely ignore this email.
+            </p>
+            
+            <p style="font-size: 12px; color: #999;">
+                © 2024 BudgetAI. All rights reserved.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

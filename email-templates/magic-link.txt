@@ -1,0 +1,41 @@
+Your Magic Link is Here! ✨
+
+You requested a secure, passwordless way to access your BudgetAI account. Click the link below to sign in instantly - no password required!
+
+{{ .ConfirmationURL }}
+
+🔗 WHAT IS A MAGIC LINK?
+A magic link is a secure, passwordless way to sign in. It's safer than passwords because it can only be used once and expires automatically. No need to remember or type passwords - just click and you're in!
+
+🔒 SECURITY NOTICE:
+This magic link will expire in 1 hour for your security. If you didn't request this sign-in link, please ignore this email and your account will remain secure.
+
+WHY MAGIC LINKS ARE BETTER:
+✨ No passwords to remember or forget
+✨ More secure than traditional passwords
+✨ Works on any device automatically
+✨ One-click access to your account
+✨ Automatic expiration for security
+
+💡 PREFER TRADITIONAL LOGIN?
+You can still use your email and password to sign in at any time. Visit: {{ .SiteURL }}/auth/login
+
+Once you click the magic link, you'll be automatically signed in and redirected to your BudgetAI dashboard where you can continue managing your finances.
+
+If you have any questions or need assistance, don't hesitate to reach out to our support team.
+
+Best regards,
+The BudgetAI Team
+
+---
+BudgetAI - Personal Finance Manager
+Take control of your finances with AI-powered insights
+
+Support: {{ .SiteURL }}/support
+Privacy Policy: {{ .SiteURL }}/privacy
+Terms of Service: {{ .SiteURL }}/terms
+
+This email was sent to {{ .Email }} because you requested a magic link to sign in to BudgetAI.
+If you didn't request this sign-in link, you can safely ignore this email.
+
+© 2024 BudgetAI. All rights reserved.
