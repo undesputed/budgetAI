@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -53,6 +53,42 @@ export function AddExpenseDialog({
   const [activeTab, setActiveTab] = useState("expense");
   const [loading, setLoading] = useState(false);
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [creditCards, setCreditCards] = useState<any[]>([]);
+  const [bankAccounts, setBankAccounts] = useState<any[]>([]);
+  const [installments, setInstallments] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+
+  // Fetch credit cards, bank accounts, installments, and categories when dialog opens
+  useEffect(() => {
+    if (open) {
+      const fetchData = async () => {
+        const expenseService = createExpenseServiceClient();
+        
+        // First, try to get categories
+        let categoriesData = await expenseService.getCategories(userId);
+        
+        // If no categories exist, create default ones
+        if (categoriesData.length === 0) {
+          const created = await expenseService.createDefaultCategories(userId);
+          if (created) {
+            categoriesData = await expenseService.getCategories(userId);
+          }
+        }
+        
+        const [cards, accounts, installmentsData] = await Promise.all([
+          expenseService.getCreditCards(userId),
+          expenseService.getBankAccounts(userId),
+          expenseService.getInstallments(userId)
+        ]);
+        
+        setCreditCards(cards);
+        setBankAccounts(accounts);
+        setInstallments(installmentsData);
+        setCategories(categoriesData);
+      };
+      fetchData();
+    }
+  }, [open, userId]);
   
   // Form states
   const [expenseData, setExpenseData] = useState({
@@ -96,6 +132,19 @@ export function AddExpenseDialog({
           });
           break;
         case 'credit-card':
+          // Validate credit card payment amount
+          const selectedCard = creditCards.find(c => c.id === creditCardData.credit_card_id);
+          if (selectedCard) {
+            const availableCredit = selectedCard.credit_limit - selectedCard.current_balance;
+            const paymentAmount = parseFloat(creditCardData.amount);
+            
+            if (paymentAmount > availableCredit) {
+              alert(`Payment amount ($${paymentAmount.toLocaleString()}) exceeds available credit ($${availableCredit.toLocaleString()})`);
+              setLoading(false);
+              return;
+            }
+          }
+          
           newExpense = await expenseService.createCreditCardPayment(userId, {
             ...creditCardData,
             date: creditCardData.date.toISOString().split('T')[0],
@@ -103,6 +152,41 @@ export function AddExpenseDialog({
           });
           break;
         case 'installment':
+          // Validate installment payment
+          const selectedInstallment = installments.find(i => i.id === installmentData.installment_id);
+          if (selectedInstallment) {
+            const paymentAmount = parseFloat(installmentData.amount);
+            const expectedAmount = selectedInstallment.monthly_payment;
+            const remainingAmount = selectedInstallment.remaining_amount;
+            
+            // Check if installment is already completed
+            if (selectedInstallment.paid_installments >= selectedInstallment.total_installments) {
+              alert('This installment plan is already completed!');
+              setLoading(false);
+              return;
+            }
+            
+            // Warn if payment amount doesn't match expected amount (but allow it)
+            if (Math.abs(paymentAmount - expectedAmount) > 0.01) {
+              const proceed = confirm(
+                `Expected payment: $${expectedAmount.toLocaleString()}\n` +
+                `Your payment: $${paymentAmount.toLocaleString()}\n\n` +
+                `Do you want to proceed with this amount?`
+              );
+              if (!proceed) {
+                setLoading(false);
+                return;
+              }
+            }
+            
+            // Check if payment exceeds remaining amount
+            if (paymentAmount > remainingAmount) {
+              alert(`Payment amount ($${paymentAmount.toLocaleString()}) exceeds remaining balance ($${remainingAmount.toLocaleString()})`);
+              setLoading(false);
+              return;
+            }
+          }
+          
           newExpense = await expenseService.createInstallmentPayment(userId, {
             ...installmentData,
             date: installmentData.date.toISOString().split('T')[0],
@@ -114,9 +198,12 @@ export function AddExpenseDialog({
       if (newExpense) {
         onExpenseAdded(newExpense);
         handleClose();
+      } else {
+        alert('Failed to create expense. Please check the console for details.');
       }
     } catch (error) {
       console.error('Error creating expense:', error);
+      alert('An error occurred while creating the expense. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -242,13 +329,17 @@ export function AddExpenseDialog({
                         <SelectValue placeholder="Select category" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="food">Food & Dining</SelectItem>
-                        <SelectItem value="transportation">Transportation</SelectItem>
-                        <SelectItem value="entertainment">Entertainment</SelectItem>
-                        <SelectItem value="shopping">Shopping</SelectItem>
-                        <SelectItem value="utilities">Utilities</SelectItem>
-                        <SelectItem value="healthcare">Healthcare</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
+                        {categories.length > 0 ? (
+                          categories.map((category) => (
+                            <SelectItem key={category.id} value={category.id}>
+                              {category.name}
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="no-categories" disabled>
+                            No categories available
+                          </SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -334,10 +425,36 @@ export function AddExpenseDialog({
                         <SelectValue placeholder="Select credit card" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="card1">Visa ****1234</SelectItem>
-                        <SelectItem value="card2">Mastercard ****5678</SelectItem>
+                        {creditCards.length > 0 ? (
+                          creditCards.map((card) => (
+                            <SelectItem key={card.id} value={card.id}>
+                              <div className="flex items-center justify-between w-full">
+                                <span>{card.card_name} ****{card.last_four_digits}</span>
+                                <div className="text-xs text-gray-500 ml-2">
+                                  ${card.current_balance.toLocaleString()} / ${card.credit_limit.toLocaleString()}
+                                </div>
+                              </div>
+                            </SelectItem>
+                          ))
+                        ) : (
+                          <SelectItem value="no-cards" disabled>
+                            No credit cards available
+                          </SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
+                    {creditCardData.credit_card_id && (
+                      <div className="text-xs text-gray-600">
+                        {(() => {
+                          const selectedCard = creditCards.find(c => c.id === creditCardData.credit_card_id);
+                          if (selectedCard) {
+                            const availableCredit = selectedCard.credit_limit - selectedCard.current_balance;
+                            return `Available Credit: $${availableCredit.toLocaleString()}`;
+                          }
+                          return '';
+                        })()}
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="cc-payment-method">Payment Method</Label>
@@ -409,16 +526,103 @@ export function AddExpenseDialog({
                     <Label htmlFor="installment-item">Installment Item</Label>
                     <Select
                       value={installmentData.installment_id}
-                      onValueChange={(value) => setInstallmentData(prev => ({ ...prev, installment_id: value }))}
+                      onValueChange={(value) => {
+                        const selectedInstallment = installments.find(i => i.id === value);
+                        setInstallmentData(prev => ({ 
+                          ...prev, 
+                          installment_id: value,
+                          // Auto-fill with expected monthly payment
+                          amount: selectedInstallment ? selectedInstallment.monthly_payment.toString() : prev.amount
+                        }));
+                      }}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select installment" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="installment1">Laptop - 3/12 payments</SelectItem>
-                        <SelectItem value="installment2">Phone - 1/24 payments</SelectItem>
+                        {installments.length > 0 ? (
+                          installments.map((installment) => {
+                            const isCompleted = installment.paid_installments >= installment.total_installments;
+                            const progressPercentage = (installment.paid_installments / installment.total_installments) * 100;
+                            
+                            return (
+                              <SelectItem 
+                                key={installment.id} 
+                                value={installment.id}
+                                disabled={isCompleted}
+                              >
+                                <div className="flex items-center justify-between w-full">
+                                  <div className="flex flex-col">
+                                    <span className={isCompleted ? "line-through text-gray-500" : ""}>
+                                      {installment.item_name}
+                                    </span>
+                                    <div className="text-xs text-gray-500">
+                                      {installment.paid_installments}/{installment.total_installments} payments
+                                      {isCompleted && " (Completed)"}
+                                    </div>
+                                  </div>
+                                  <div className="text-xs text-gray-500 ml-2">
+                                    ${installment.monthly_payment.toLocaleString()}/mo
+                                  </div>
+                                </div>
+                              </SelectItem>
+                            );
+                          })
+                        ) : (
+                          <SelectItem value="no-installments" disabled>
+                            No installments available
+                          </SelectItem>
+                        )}
                       </SelectContent>
                     </Select>
+                    {installmentData.installment_id && (
+                      <div className="space-y-2">
+                        {(() => {
+                          const selectedInstallment = installments.find(i => i.id === installmentData.installment_id);
+                          if (selectedInstallment) {
+                            const isCompleted = selectedInstallment.paid_installments >= selectedInstallment.total_installments;
+                            const progressPercentage = (selectedInstallment.paid_installments / selectedInstallment.total_installments) * 100;
+                            const nextPaymentNumber = selectedInstallment.paid_installments + 1;
+                            
+                            return (
+                              <div className="space-y-2">
+                                <div className="flex justify-between text-xs">
+                                  <span>Progress: {selectedInstallment.paid_installments}/{selectedInstallment.total_installments} payments</span>
+                                  <span>{progressPercentage.toFixed(1)}%</span>
+                                </div>
+                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                  <div 
+                                    className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                                    style={{ width: `${Math.min(progressPercentage, 100)}%` }}
+                                  ></div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2 text-xs">
+                                  <div>
+                                    <span className="text-gray-500">Remaining:</span>
+                                    <span className="ml-1 font-medium">${selectedInstallment.remaining_amount.toLocaleString()}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-gray-500">Monthly:</span>
+                                    <span className="ml-1 font-medium">${selectedInstallment.monthly_payment.toLocaleString()}</span>
+                                  </div>
+                                </div>
+                                {!isCompleted && (
+                                  <div className="text-xs text-blue-600 font-medium">
+                                    Next Payment: #{nextPaymentNumber} - ${selectedInstallment.monthly_payment.toLocaleString()}
+                                  </div>
+                                )}
+                                {isCompleted && (
+                                  <div className="text-xs text-green-600 font-medium">
+                                    ✅ Installment plan completed!
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          }
+                          return '';
+                        })()}
+                      </div>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="installment-payment-method">Payment Method</Label>

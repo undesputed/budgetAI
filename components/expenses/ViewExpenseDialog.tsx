@@ -18,7 +18,7 @@ import {
   Receipt,
   ExternalLink
 } from "lucide-react";
-import { ExpenseTransaction } from "@/lib/services/expense-service";
+import { ExpenseTransaction } from "@/lib/services/expense-service-client";
 
 interface ViewExpenseDialogProps {
   expense: ExpenseTransaction | null;
@@ -79,7 +79,7 @@ export function ViewExpenseDialog({
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            {getExpenseIcon(expense.expense_type)}
+            {getExpenseIcon(expense.expense_type || 'Expense')}
             Expense Details
           </DialogTitle>
           <DialogDescription>
@@ -124,8 +124,8 @@ export function ViewExpenseDialog({
               <div>
                 <label className="text-sm font-medium text-gray-500">Type</label>
                 <p className="flex items-center gap-2 mt-1">
-                  {getExpenseIcon(expense.expense_type)}
-                  {expense.expense_type}
+                  {getExpenseIcon(expense.expense_type || 'Expense')}
+                  {expense.expense_type || 'Expense'}
                 </p>
               </div>
             </CardContent>
@@ -158,24 +158,6 @@ export function ViewExpenseDialog({
                 </div>
               </div>
 
-              {/* Credit Card Information */}
-              {expense.credit_card_name && (
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Credit Card</label>
-                  <p className="flex items-center gap-2 mt-1">
-                    <CreditCard className="h-4 w-4" />
-                    {expense.credit_card_name} ****{expense.credit_card_last_four}
-                  </p>
-                </div>
-              )}
-
-              {/* Bank Account Information */}
-              {expense.bank_account_name && (
-                <div>
-                  <label className="text-sm font-medium text-gray-500">Bank Account</label>
-                  <p>{expense.bank_account_name} ({expense.bank_account_type})</p>
-                </div>
-              )}
             </CardContent>
           </Card>
 

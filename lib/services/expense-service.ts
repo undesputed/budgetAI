@@ -125,35 +125,24 @@ export class ExpenseService {
   // Get all expenses with filtering
   async getExpenses(userId: string, filters: ExpenseFilters = {}): Promise<ExpenseTransaction[]> {
     try {
+      // Use transactions table directly instead of view to avoid potential issues
       let query = this.supabase
-        .from('expense_management_view')
-        .select('*')
-        .eq('user_id', userId);
+        .from('transactions')
+        .select(`
+          *,
+          categories:category_id(name, color),
+          payment_methods:payment_method_id(name, type)
+        `)
+        .eq('user_id', userId)
+        .eq('type', 'expense');
 
       // Apply filters
-      if (filters.type && filters.type !== 'all') {
-        switch (filters.type) {
-          case 'expense':
-            query = query.eq('expense_type', 'Expense');
-            break;
-          case 'credit_card_payment':
-            query = query.eq('expense_type', 'Credit Card Payment');
-            break;
-          case 'installment_payment':
-            query = query.eq('expense_type', 'Installment Payment');
-            break;
-          case 'recurring_payment':
-            query = query.eq('expense_type', 'Recurring Payment');
-            break;
-        }
-      }
-
       if (filters.category) {
-        query = query.eq('category_name', filters.category);
+        query = query.eq('category_id', filters.category);
       }
 
       if (filters.payment_method) {
-        query = query.eq('payment_method_name', filters.payment_method);
+        query = query.eq('payment_method_id', filters.payment_method);
       }
 
       if (filters.status && filters.status !== 'all') {
@@ -183,7 +172,17 @@ export class ExpenseService {
         return [];
       }
 
-      return data || [];
+      // Transform data to match expected format
+      const transformedData = (data || []).map((expense: any) => ({
+        ...expense,
+        category_name: expense.categories?.name || null,
+        category_color: expense.categories?.color || null,
+        payment_method_name: expense.payment_methods?.name || null,
+        payment_method_type: expense.payment_methods?.type || null,
+        expense_type: 'Expense' // Default for now
+      }));
+
+      return transformedData;
     } catch (error) {
       console.error('Error in getExpenses:', error);
       return [];
@@ -194,8 +193,12 @@ export class ExpenseService {
   async getExpenseById(expenseId: string): Promise<ExpenseTransaction | null> {
     try {
       const { data, error } = await this.supabase
-        .from('expense_management_view')
-        .select('*')
+        .from('transactions')
+        .select(`
+          *,
+          categories:category_id(name, color),
+          payment_methods:payment_method_id(name, type)
+        `)
         .eq('id', expenseId)
         .single();
 
@@ -204,7 +207,15 @@ export class ExpenseService {
         return null;
       }
 
-      return data;
+      // Transform data to match expected format
+      return {
+        ...data,
+        category_name: data.categories?.name || null,
+        category_color: data.categories?.color || null,
+        payment_method_name: data.payment_methods?.name || null,
+        payment_method_type: data.payment_methods?.type || null,
+        expense_type: 'Expense'
+      };
     } catch (error) {
       console.error('Error in getExpenseById:', error);
       return null;

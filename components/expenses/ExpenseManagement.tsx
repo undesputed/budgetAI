@@ -23,6 +23,8 @@ import { ExpenseFilters as ExpenseFiltersComponent } from "./ExpenseFilters";
 import { AddExpenseDialog } from "./AddExpenseDialog";
 import { PaymentNotifications } from "./PaymentNotifications";
 import { PaymentMethodDialog } from "./PaymentMethodDialog";
+import { InstallmentManagement } from "./InstallmentManagement";
+import { ExportDialog } from "./ExportDialog";
 
 interface ExpenseManagementProps {
   user: User;
@@ -46,6 +48,7 @@ export function ExpenseManagement({
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showPaymentMethodDialog, setShowPaymentMethodDialog] = useState(false);
+  const [showExportDialog, setShowExportDialog] = useState(false);
 
   // Filter expenses based on active tab and filters
   useEffect(() => {
@@ -128,8 +131,55 @@ export function ExpenseManagement({
   };
 
   const handleExportExpenses = () => {
-    // TODO: Implement CSV export
-    console.log("Export expenses to CSV");
+    try {
+      // Import CSV utilities dynamically to avoid SSR issues
+      import('@/lib/utils/csv-export').then(({ convertToCSV, downloadCSV, formatDateForCSV }) => {
+        // Prepare data for export
+        const exportData = filteredExpenses.map(expense => ({
+          'Date': formatDateForCSV(expense.date),
+          'Description': expense.description || '',
+          'Amount': expense.amount,
+          'Category': expense.category_name || '',
+          'Payment Method': expense.payment_method_name || '',
+          'Type': expense.expense_type || '',
+          'Status': expense.status || '',
+          'Notes': expense.notes || '',
+          'Receipt URL': expense.receipt_url || '',
+          'Installment Info': expense.installment_number && expense.installment_total 
+            ? `${expense.installment_number}/${expense.installment_total}` 
+            : '',
+          'Created At': formatDateForCSV(expense.created_at)
+        }));
+
+        // Define CSV headers
+        const headers = [
+          'Date',
+          'Description', 
+          'Amount',
+          'Category',
+          'Payment Method',
+          'Type',
+          'Status',
+          'Notes',
+          'Receipt URL',
+          'Installment Info',
+          'Created At'
+        ];
+
+        // Generate CSV content
+        const csvContent = convertToCSV(exportData, headers);
+        
+        // Generate filename with current date
+        const currentDate = new Date().toISOString().split('T')[0];
+        const filename = `expenses_${currentDate}.csv`;
+        
+        // Download the CSV file
+        downloadCSV(csvContent, filename);
+      });
+    } catch (error) {
+      console.error('Error exporting expenses:', error);
+      alert('Failed to export expenses. Please try again.');
+    }
   };
 
   return (
@@ -176,7 +226,7 @@ export function ExpenseManagement({
           <Button
             variant="outline"
             size="sm"
-            onClick={handleExportExpenses}
+            onClick={() => setShowExportDialog(true)}
           >
             <Download className="h-4 w-4 mr-2" />
             Export
@@ -335,8 +385,8 @@ export function ExpenseManagement({
       {/* Main Content - Tabbed Interface */}
       <Card className="corporate-shadow">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="border-b border-[#cce0ff]">
-            <TabsList className="grid w-full grid-cols-5 bg-transparent h-auto p-0">
+          <div className="border-b border-[#cce0ff] px-4 pt-4">
+            <TabsList className="grid w-full grid-cols-6 bg-transparent h-auto p-0 gap-2">
               <TabsTrigger 
                 value="all" 
                 className="flex items-center gap-2 data-[state=active]:bg-[#007acc] data-[state=active]:text-white"
@@ -390,6 +440,14 @@ export function ExpenseManagement({
                   {expenses.filter(e => e.expense_type === "Recurring Payment").length}
                 </Badge>
               </TabsTrigger>
+              
+              <TabsTrigger 
+                value="installment-plans" 
+                className="flex items-center gap-2 data-[state=active]:bg-[#007acc] data-[state=active]:text-white"
+              >
+                <Calendar className="h-4 w-4" />
+                Installment Plans
+              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -437,6 +495,10 @@ export function ExpenseManagement({
               paymentMethods={userPaymentMethods}
             />
           </TabsContent>
+          
+          <TabsContent value="installment-plans" className="mt-6 px-4 pb-4">
+            <InstallmentManagement userId={user.id} />
+          </TabsContent>
         </Tabs>
       </Card>
 
@@ -464,6 +526,14 @@ export function ExpenseManagement({
         onOpenChange={setShowNotifications}
         notifications={notifications}
         userId={user.id}
+      />
+
+      {/* Export Dialog */}
+      <ExportDialog
+        open={showExportDialog}
+        onOpenChange={setShowExportDialog}
+        expenses={expenses}
+        filteredExpenses={filteredExpenses}
       />
     </div>
   );

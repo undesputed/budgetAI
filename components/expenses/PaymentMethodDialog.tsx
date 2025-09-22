@@ -319,62 +319,9 @@ export function PaymentMethodDialog({
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Empty state with default creation */}
-          {methods.length === 0 && !showAddForm && (
-            <div className="text-center py-8">
-              <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No payment methods yet</h3>
-              <p className="text-gray-600 mb-4">
-                Create your first payment method or start with some common ones.
-              </p>
-              <div className="flex gap-2 justify-center">
-                <Button onClick={() => setShowAddForm(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Payment Method
-                </Button>
-                <Button variant="outline" onClick={handleCreateDefaults}>
-                  Create Sample Methods
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Payment methods list */}
-          {methods.length > 0 && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="font-medium">Your Payment Methods</h3>
-                <Button onClick={() => setShowAddForm(true)} size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add New
-                </Button>
-              </div>
-              
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}
-              >
-                <SortableContext
-                  items={methods.map(m => m.id)}
-                  strategy={verticalListSortingStrategy}
-                >
-                  {methods.map((method) => (
-                    <SortablePaymentMethodItem
-                      key={method.id}
-                      method={method}
-                      onEdit={handleEdit}
-                      onDelete={handleDelete}
-                    />
-                  ))}
-                </SortableContext>
-              </DndContext>
-            </div>
-          )}
-
-          {/* Add/Edit form */}
+          {/* Add/Edit form - moved to top */}
           {showAddForm && (
-            <div className="border-t pt-4">
+            <div className="border-b pb-4">
               <h3 className="font-medium mb-4">
                 {editingMethod ? 'Edit Payment Method' : 'Add New Payment Method'}
               </h3>
@@ -441,6 +388,59 @@ export function PaymentMethodDialog({
                   Cancel
                 </Button>
               </div>
+            </div>
+          )}
+
+          {/* Empty state with default creation */}
+          {methods.length === 0 && !showAddForm && (
+            <div className="text-center py-8">
+              <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No payment methods yet</h3>
+              <p className="text-gray-600 mb-4">
+                Create your first payment method or start with some common ones.
+              </p>
+              <div className="flex gap-2 justify-center">
+                <Button onClick={() => setShowAddForm(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Payment Method
+                </Button>
+                <Button variant="outline" onClick={handleCreateDefaults}>
+                  Create Sample Methods
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Payment methods list */}
+          {methods.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-medium">Your Payment Methods</h3>
+                <Button onClick={() => setShowAddForm(true)} size="sm">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add New
+                </Button>
+              </div>
+              
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext
+                  items={methods.map(m => m.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {methods.map((method) => (
+                    <SortablePaymentMethodItem
+                      key={method.id}
+                      method={method}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                    />
+                  ))}
+                </SortableContext>
+              </DndContext>
             </div>
           )}
         </div>

@@ -130,9 +130,9 @@ export function ExpenseTable({
               <TableRow key={expense.id} className="hover:bg-gray-50">
                 <TableCell>
                   <div className="flex items-center gap-2">
-                    {getExpenseIcon(expense.expense_type)}
+                    {getExpenseIcon(expense.expense_type || 'Expense')}
                     <span className="text-sm font-medium text-gray-600">
-                      {expense.expense_type}
+                      {expense.expense_type || 'Expense'}
                     </span>
                   </div>
                 </TableCell>
@@ -179,16 +179,6 @@ export function ExpenseTable({
                   <div className="text-sm">
                     {expense.payment_method_name || 'Not specified'}
                   </div>
-                  {expense.credit_card_name && (
-                    <div className="text-xs text-gray-500">
-                      {expense.credit_card_name} ****{expense.credit_card_last_four}
-                    </div>
-                  )}
-                  {expense.bank_account_name && (
-                    <div className="text-xs text-gray-500">
-                      {expense.bank_account_name}
-                    </div>
-                  )}
                 </TableCell>
                 
                 <TableCell className="text-right">

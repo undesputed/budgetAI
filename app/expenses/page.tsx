@@ -18,17 +18,33 @@ export default async function ExpensesPage() {
   // Initialize expense service
   const expenseService = await createExpenseService();
 
-  // Fetch initial data
-  const [expenses, paymentMethods, notifications] = await Promise.all([
-    expenseService.getExpenses(user.id, { type: 'all' }),
-    expenseService.getPaymentMethods(user.id),
-    expenseService.getPaymentNotifications(user.id)
-  ]);
+  // Fetch initial data with error handling
+  let expenses: any[] = [];
+  let paymentMethods: any[] = [];
+  let notifications: any[] = [];
+
+  try {
+    [expenses, paymentMethods, notifications] = await Promise.all([
+      expenseService.getExpenses(user.id, { type: 'all' }).catch(err => {
+        console.error('Error fetching expenses:', err);
+        return [];
+      }),
+      expenseService.getPaymentMethods(user.id).catch(err => {
+        console.error('Error fetching payment methods:', err);
+        return [];
+      }),
+      expenseService.getPaymentNotifications(user.id).catch(err => {
+        console.error('Error fetching notifications:', err);
+        return [];
+      })
+    ]);
+  } catch (error) {
+    console.error('Error initializing expense service:', error);
+    // Continue with empty arrays
+  }
 
   return (
     <DashboardLayout
-      title="Expenses"
-      subtitle="Manage all your expenses, payments, and financial outflows"
       breadcrumbs={[
         { label: "Dashboard", href: "/dashboard" },
         { label: "Expenses", isActive: true }

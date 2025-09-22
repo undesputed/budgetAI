@@ -175,7 +175,7 @@ CREATE TABLE IF NOT EXISTS public.transactions (
     category_id UUID REFERENCES public.categories(id) ON DELETE SET NULL,
     credit_card_id UUID REFERENCES public.credit_cards(id) ON DELETE SET NULL,
     bank_account_id UUID REFERENCES public.bank_accounts(id) ON DELETE SET NULL,
-    amount DECIMAL(10,2) NOT NULL CHECK (amount > 0),
+    amount DECIMAL(10,2) NOT NULL,
     description TEXT NOT NULL,
     type TEXT CHECK (type IN ('income', 'expense', 'transfer', 'payment')) NOT NULL,
     date DATE NOT NULL,
@@ -576,7 +576,12 @@ BEGIN
     VALUES 
         (NEW.id, 'Salary', 'Regular employment income', '#2ed573', 'briefcase', true),
         (NEW.id, 'Freelance', 'Freelance and contract work', '#ffa502', 'user', true),
+        (NEW.id, 'Business', 'Business income and profits', '#ff6348', 'building', true),
         (NEW.id, 'Investment', 'Dividends, capital gains', '#3742fa', 'trending-up', true),
+        (NEW.id, 'Rental', 'Rental income from properties', '#ff9f43', 'home', true),
+        (NEW.id, 'Side Hustle', 'Part-time or side business income', '#5f27cd', 'zap', true),
+        (NEW.id, 'Bonus', 'Performance bonuses and incentives', '#00d2d3', 'gift', true),
+        (NEW.id, 'Refund', 'Returns and refunds', '#ff6b6b', 'rotate-ccw', true),
         (NEW.id, 'Other Income', 'Other sources of income', '#2f3542', 'dollar-sign', true);
     
     RETURN NEW;
@@ -996,6 +1001,10 @@ ALTER TABLE public.transactions ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'co
 ALTER TABLE public.transactions ADD COLUMN IF NOT EXISTS installment_number INTEGER;
 ALTER TABLE public.transactions ADD COLUMN IF NOT EXISTS installment_total INTEGER;
 
+-- Income-specific fields
+ALTER TABLE public.transactions ADD COLUMN IF NOT EXISTS income_source TEXT;
+ALTER TABLE public.transactions ADD COLUMN IF NOT EXISTS income_type TEXT CHECK (income_type IN ('general', 'recurring', 'refund', 'transfer')) DEFAULT 'general';
+
 -- Payment methods table (user configurable)
 CREATE TABLE IF NOT EXISTS public.payment_methods (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
@@ -1066,6 +1075,11 @@ CREATE INDEX IF NOT EXISTS idx_receipt_images_transaction_id ON public.receipt_i
 CREATE INDEX IF NOT EXISTS idx_transactions_payment_method ON public.transactions(payment_method_id);
 CREATE INDEX IF NOT EXISTS idx_transactions_status ON public.transactions(user_id, status);
 CREATE INDEX IF NOT EXISTS idx_transactions_installment ON public.transactions(user_id, installment_number, installment_total) WHERE installment_number IS NOT NULL;
+
+-- Income-specific indexes
+CREATE INDEX IF NOT EXISTS idx_transactions_income_type ON public.transactions(user_id, income_type) WHERE type = 'income';
+CREATE INDEX IF NOT EXISTS idx_transactions_income_source ON public.transactions(user_id, income_source) WHERE type = 'income';
+CREATE INDEX IF NOT EXISTS idx_transactions_type_status ON public.transactions(user_id, type, status);
 
 -- =============================================
 -- EXPENSE MANAGEMENT FUNCTIONS
@@ -1242,6 +1256,65 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+-- =============================================
+-- INCOME MANAGEMENT VIEW
+-- =============================================
+
+-- Comprehensive view for income management
+CREATE OR REPLACE VIEW public.income_management_view AS
+SELECT 
+    t.id,
+    t.user_id,
+    t.date,
+    t.description,
+    t.amount,
+    t.type,
+    t.status,
+    t.notes,
+    t.income_source,
+    t.income_type,
+    t.created_at,
+    t.updated_at,
+    
+    -- Category information
+    c.id as category_id,
+    c.name as category_name,
+    c.color as category_color,
+    c.icon as category_icon,
+    
+    -- Payment method information
+    pm.id as payment_method_id,
+    pm.name as payment_method_name,
+    pm.type as payment_method_type,
+    
+    -- Bank account information
+    ba.id as bank_account_id,
+    ba.account_name as bank_account_name,
+    ba.account_type as bank_account_type,
+    
+    -- Computed fields
+    CASE 
+        WHEN t.income_type = 'general' THEN 'General Income'
+        WHEN t.income_type = 'recurring' THEN 'Recurring Income'
+        WHEN t.income_type = 'refund' THEN 'Refund'
+        WHEN t.income_type = 'transfer' THEN 'Transfer'
+        ELSE 'Income'
+    END as income_type_label,
+    
+    CASE 
+        WHEN t.income_type = 'general' THEN '💼'
+        WHEN t.income_type = 'recurring' THEN '🔄'
+        WHEN t.income_type = 'refund' THEN '💸'
+        WHEN t.income_type = 'transfer' THEN '🔄'
+        ELSE '💰'
+    END as income_icon
+
+FROM public.transactions t
+LEFT JOIN public.categories c ON t.category_id = c.id
+LEFT JOIN public.payment_methods pm ON t.payment_method_id = pm.id
+LEFT JOIN public.bank_accounts ba ON t.bank_account_id = ba.id
+WHERE t.type = 'income';
 
 -- =============================================
 -- EXPENSE MANAGEMENT VIEWS
